@@ -1,0 +1,75 @@
+/* Tablet (Landscape) and Desktop are handled by default */
+
+/* Tablet (Portrait) and smaller */
+@media (max-width: 1024px) {
+    .container {
+        padding: 0 1.5rem;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 0 1.5rem;
+    }
+
+    .hamburger {
+        display: flex;
+    }
+
+    .navbar-links {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 70%;
+        height: 100vh;
+        background-color: var(--bg-color);
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 3rem;
+        border-left: 1px solid var(--border-color);
+        transition: right 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+        z-index: 1000;
+    }
+
+    .navbar-links.active {
+        right: 0;
+    }
+
+    /* Hamburger animation when active */
+    .hamburger.active span:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 6px);
+    }
+
+    .hamburger.active span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .hamburger.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(5px, -6px);
+    }
+
+    /* Mobile Grid Layout adjustments */
+    .container {
+        padding: 0 5%;
+        /* 5% margin on sides */
+    }
+
+    .grid-container {
+        grid-template-columns: 1fr 1fr;
+        /* Force 2 columns */
+        gap: 5%;
+        /* 5% gap between columns */
+    }
+
+    .card-content {
+        padding: 0.8rem;
+        /* Reduce padding to fit content better */
+    }
+
+    .card-title {
+        font-size: 0.9rem;
+        /* Smaller font for mobile */
+    }
+}
