@@ -1,4 +1,13 @@
 document.addEventListener("DOMContentLoaded", function () {
+    // Enable React Grab only on local dev hosts
+    if (["localhost", "127.0.0.1"].includes(window.location.hostname)) {
+        const grabScript = document.createElement("script");
+        grabScript.src = "//unpkg.com/react-grab/dist/index.global.js";
+        grabScript.crossOrigin = "anonymous";
+        grabScript.dataset.enabled = "true";
+        document.head.appendChild(grabScript);
+    }
+
     // Load Navbar
     fetch("components/navbar.html")
         .then(response => response.text())

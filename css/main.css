@@ -11,12 +11,19 @@
   padding: 0;
 }
 
+html, body {
+  height: 100%;
+}
+
 body {
   background-color: var(--bg-color);
   color: var(--text-color);
   font-family: var(--font-main);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 a {
@@ -38,6 +45,10 @@ img {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 2rem;
+}
+
+main {
+  flex: 1;
 }
 
 .grid {
