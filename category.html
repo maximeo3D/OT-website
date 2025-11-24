@@ -22,81 +22,67 @@
     <script src="js/components.js"></script>
 
     <main class="container" style="padding-top: 4rem; padding-bottom: 4rem;">
-        <div style="margin-bottom: 2rem; display: flex; flex-direction: column; gap: 1rem;">
+        <div class="category-header">
             <div>
                 <a href="products.html" style="font-size: 0.9rem; text-transform: uppercase; color: #666;">&larr; Retour
                     aux catégories</a>
-                <h1 style="font-size: 2rem; font-weight: 700; margin-top: 1rem; text-transform: uppercase;">Vêtements
+                <h1 id="category-title"
+                    style="font-size: 2rem; font-weight: 700; margin-top: 1rem; text-transform: uppercase;">
+                    Catégorie
                 </h1>
             </div>
 
-            <!-- Sorting Controls -->
-            <div class="sort-container" style="align-self: flex-end; margin-top: 1rem;">
-                <label for="sort-select" style="margin-right: 0.5rem; font-weight: 500;">Trier par:</label>
-                <select id="sort-select"
-                    style="padding: 0.5rem; border: 1px solid #000; background: #fff; font-family: inherit; cursor: pointer;">
-                    <option value="name">Nom</option>
-                    <option value="price-asc">Prix croissant</option>
-                    <option value="price-desc">Prix décroissant</option>
-                    <option value="bestseller">Best-seller</option>
-                </select>
+            <div class="category-controls">
+                <details class="filter-panel">
+                    <summary>Filtrer</summary>
+                    <div class="filter-content">
+                        <div class="filter-group">
+                            <span class="filter-label">Prix (0€ - 100€)</span>
+                            <div class="price-slider">
+                                <div class="price-range">
+                                    <div class="price-track" id="price-track"></div>
+                                    <div class="price-inputs">
+                                        <input type="range" id="price-min" min="0" max="100" value="0" step="1">
+                                        <input type="range" id="price-max" min="0" max="100" value="100" step="1">
+                                    </div>
+                                </div>
+                                <div class="price-values">
+                                    <span id="price-min-value">0 €</span>
+                                    <span id="price-max-value">100 €</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="filter-group">
+                            <span class="filter-label">Type de produit</span>
+                            <div id="type-filter-options" class="type-options">
+                                <!-- Filled dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <div class="sort-container">
+                    <label for="sort-select" class="sort-label">Trier par:</label>
+                    <select id="sort-select" class="sort-select">
+                        <option value="name">Nom</option>
+                        <option value="price-asc">Prix croissant</option>
+                        <option value="price-desc">Prix décroissant</option>
+                        <option value="bestseller">Best-seller</option>
+                    </select>
+                </div>
             </div>
         </div>
 
         <div class="grid-container" id="product-grid">
-            <!-- Product 1 -->
-            <a href="product.html?id=1" class="card" data-price="25.00" data-name="T-Shirt Basique" data-bestseller="1"
-                style="text-decoration: none; color: inherit;">
-                <div class="card-image">
-                    <span style="font-size: 3rem; color: #ccc;">IMG</span>
-                </div>
-                <div class="card-content">
-                    <h2 class="card-title">T-Shirt Basique</h2>
-                    <p class="card-price">25,00 €</p>
-                </div>
-            </a>
-
-            <!-- Product 2 -->
-            <a href="product.html?id=2" class="card" data-price="60.00" data-name="Pantalon Noir" data-bestseller="3"
-                style="text-decoration: none; color: inherit;">
-                <div class="card-image">
-                    <span style="font-size: 3rem; color: #ccc;">IMG</span>
-                </div>
-                <div class="card-content">
-                    <h2 class="card-title">Pantalon Noir</h2>
-                    <p class="card-price">60,00 €</p>
-                </div>
-            </a>
-
-            <!-- Product 3 -->
-            <a href="product.html?id=3" class="card" data-price="85.00" data-name="Veste Légère" data-bestseller="4"
-                style="text-decoration: none; color: inherit;">
-                <div class="card-image">
-                    <span style="font-size: 3rem; color: #ccc;">IMG</span>
-                </div>
-                <div class="card-content">
-                    <h2 class="card-title">Veste Légère</h2>
-                    <p class="card-price">85,00 €</p>
-                </div>
-            </a>
-
-            <!-- Product 4 -->
-            <a href="product.html?id=4" class="card" data-price="45.00" data-name="Chemise Blanche" data-bestseller="2"
-                style="text-decoration: none; color: inherit;">
-                <div class="card-image">
-                    <span style="font-size: 3rem; color: #ccc;">IMG</span>
-                </div>
-                <div class="card-content">
-                    <h2 class="card-title">Chemise Blanche</h2>
-                    <p class="card-price">45,00 €</p>
-                </div>
-            </a>
         </div>
     </main>
 
     <div id="footer-placeholder"></div>
-    <script src="js/main.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/category.js"></script>
     <script src="js/sort.js"></script>
+    <script src="js/main.js"></script>
 </body>
 
 </html>

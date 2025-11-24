@@ -1,8 +1,16 @@
+@font-face {
+  font-family: 'Fjalla One';
+  src: url('../fonts/FjallaOne-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --bg-color: #ffffff;
   --text-color: #000000;
   --border-color: #000000;
-  --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-main: 'Fjalla One', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 * {
