@@ -57,6 +57,74 @@
     color: #666;
 }
 
+.card-price.out-of-stock,
+.product-price.out-of-stock {
+    color: #000;
+    text-decoration: line-through;
+}
+
+.card-price.promo,
+.product-price.promo {
+    color: #000;
+    font-weight: 500;
+}
+
+.stock-status.in-stock {
+    color: #1c7d2c;
+}
+
+.stock-status.out-stock {
+    color: #c62828;
+}
+
+.card-pricing,
+.product-pricing {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+
+.card-pricing {
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.product-pricing {
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+}
+
+.promo-pill {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.45rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0;
+    line-height: 1;
+    transform: translateY(-5px);
+}
+
+.product-meta-row {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    margin-bottom: 1.5rem;
+}
+
+.stock-status {
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+    transform: translateY(-4px);
+}
+
 .category-header {
     margin-bottom: 2rem;
     display: flex;
@@ -223,6 +291,11 @@
     accent-color: #000;
 }
 
+.stock-filter {
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
 .sort-container {
     display: flex;
     align-items: center;
@@ -253,11 +326,17 @@
 
 /* Contact Form */
 .contact-form {
-    max-width: 600px;
+    max-width: 1040px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1.75rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(280px, 1fr));
+    gap: 2rem;
 }
 
 .form-group {
@@ -270,6 +349,7 @@
     font-weight: 500;
     text-transform: uppercase;
     font-size: 0.9rem;
+    letter-spacing: 0.04em;
 }
 
 .form-group input,
@@ -285,6 +365,41 @@
 .form-group textarea:focus {
     outline: none;
     background-color: #fafafa;
+}
+
+.file-upload input[type="file"] {
+    padding: 0.85rem 1rem;
+    border: 1px dashed #666;
+    font-size: 0.95rem;
+    background-color: #fff;
+    cursor: pointer;
+}
+
+.file-upload input[type="file"]::-webkit-file-upload-button {
+    border: none;
+    padding: 0.5rem 1rem;
+    margin-right: 0.75rem;
+    background-color: #000;
+    color: #fff;
+    text-transform: uppercase;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.file-upload input[type="file"]::file-selector-button {
+    border: none;
+    padding: 0.5rem 1rem;
+    margin-right: 0.75rem;
+    background-color: #000;
+    color: #fff;
+    text-transform: uppercase;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.file-upload .file-hint {
+    font-size: 0.85rem;
+    color: #777;
 }
 
 .btn-submit {
@@ -311,5 +426,10 @@
     .filter-panel,
     .sort-container {
         width: 100%;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
     }
 }

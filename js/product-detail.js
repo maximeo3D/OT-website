@@ -1,3 +1,5 @@
+const formatPriceValue = (value) => `${value.toFixed(2).replace('.', ',')} €`;
+
 document.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
     const productId = params.get('id');
@@ -34,6 +36,10 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
+    const inStock = product.stock !== false;
+    const promoActive = typeof product.promo === 'number' && product.promo > 0;
+    const promoPrice = promoActive ? Number((product.price * (1 - product.promo / 100)).toFixed(2)) : product.price;
+
     container.innerHTML = `
         <div class="product-gallery">
             <div class="main-image" id="main-image">
@@ -45,7 +51,16 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="product-info">
             <h1>${product.name}</h1>
-            <p class="product-price">${product.price.toFixed(2)} €</p>
+            <div class="product-meta-row">
+                <div class="product-pricing">
+                    <p class="product-price${(!inStock || promoActive) ? ' out-of-stock' : ''}">${formatPriceValue(product.price)}</p>
+                    ${promoActive ? `<p class="product-price promo">${formatPriceValue(promoPrice)}</p>
+                        <span class="promo-pill">-${product.promo}%</span>` : ''}
+                    <span class="stock-status ${inStock ? 'in-stock' : 'out-stock'}">
+                        ${inStock ? 'En stock' : 'Rupture de stock'}
+                    </span>
+                </div>
+            </div>
             <div class="product-description">
                 <p>${product.description}</p>
             </div>

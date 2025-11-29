@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
     const requestedCategory = params.get('category');
-    const categoryName = requestedCategory ? decodeURIComponent(requestedCategory) : 'Vêtements';
+    const categoryName = requestedCategory ? decodeURIComponent(requestedCategory) : "Accessoires d'arme";
 
     const titleEl = document.getElementById('category-title');
     if (titleEl) {
@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const priceMinLabel = document.getElementById('price-min-value');
     const priceMaxLabel = document.getElementById('price-max-value');
     const priceTrack = document.getElementById('price-track');
+    const stockOnlyInput = document.getElementById('stock-only');
 
     if (!grid || !window.products) {
         return;
@@ -25,7 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const productsInCategory = products.filter(product => product.category === categoryName);
     const baseProducts = (productsInCategory.length ? productsInCategory : products).map(product => ({
         ...product,
-        productType: product.productType || 'Type 1'
+        productType: product.productType || 'Type 1',
+        stock: product.stock === false ? false : true
     }));
 
     let activeTypes = new Set();
@@ -113,9 +115,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const { min = 0, max = 100 } = updatePriceUI() || {};
 
         return baseProducts.filter(product => {
-            const matchesPrice = product.price >= min && product.price <= max;
+            const displayPrice = getDisplayPrice(product);
+            const matchesPrice = displayPrice >= min && displayPrice <= max;
             const matchesType = !activeTypes.size || activeTypes.has(product.productType);
-            return matchesPrice && matchesType;
+            const isInStock = product.stock !== false;
+            const matchesStock = !stockOnlyInput || !stockOnlyInput.checked || isInStock;
+            return matchesPrice && matchesType && matchesStock;
         });
     }
 
@@ -129,12 +134,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         filtered.forEach(product => {
+            const isInStock = product.stock !== false;
+            const promoActive = hasPromo(product);
+            const promoPrice = getDisplayPrice(product);
             const card = document.createElement('a');
             card.href = `product.html?id=${product.id}`;
             card.className = 'card';
-            card.dataset.price = product.price.toFixed(2);
+            card.dataset.price = promoPrice.toFixed(2);
             card.dataset.name = product.name;
             card.dataset.bestseller = product.bestseller ? '0' : '1';
+            card.dataset.stock = isInStock ? '1' : '0';
             card.style.textDecoration = 'none';
             card.style.color = 'inherit';
 
@@ -144,7 +153,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="card-content">
                     <h2 class="card-title">${product.name}</h2>
-                    <p class="card-price">${formatPrice(product.price)}</p>
+                    <div class="card-pricing">
+                        <p class="card-price${(!isInStock || promoActive) ? ' out-of-stock' : ''}">${formatPrice(product.price)}</p>
+                        ${promoActive ? `<p class="card-price promo">${formatPrice(promoPrice)}</p>
+                            <span class="promo-pill">-${product.promo}%</span>` : ''}
+                        <span class="stock-status ${isInStock ? 'in-stock' : 'out-stock'}">${isInStock ? 'En stock' : 'Rupture de stock'}</span>
+                    </div>
                 </div>
             `;
 
@@ -171,9 +185,24 @@ document.addEventListener('DOMContentLoaded', () => {
             renderProducts();
         });
     }
+
+    if (stockOnlyInput) {
+        stockOnlyInput.addEventListener('change', renderProducts);
+    }
 });
 
 function formatPrice(price) {
     return `${price.toFixed(2).replace('.', ',')} €`;
+}
+
+function hasPromo(product) {
+    return typeof product.promo === 'number' && product.promo > 0;
+}
+
+function getDisplayPrice(product) {
+    if (hasPromo(product)) {
+        return Number((product.price * (1 - product.promo / 100)).toFixed(2));
+    }
+    return Number(product.price);
 }
 
