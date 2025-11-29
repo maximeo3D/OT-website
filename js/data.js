@@ -7,6 +7,11 @@ const products = [
         productType: "Type 1",
         description: "Un t-shirt en coton bio d'une douceur incomparable. Coupe ajustée, idéal pour le quotidien. Disponible en plusieurs coloris.",
         images: ["assets/images/ph-1.jpg", "assets/images/ph-2.jpg", "assets/images/ph-3.jpg"],
+        variants: [
+            { color: "#000000", colorName: "Noir", images: ["assets/images/ph-1.jpg", "assets/images/ph-2.jpg", "assets/images/ph-3.jpg"] },
+            { color: "#FFFFFF", colorName: "Blanc", images: ["assets/images/ph-2.jpg", "assets/images/ph-3.jpg", "assets/images/ph-1.jpg"] },
+            { color: "#FF0000", colorName: "Rouge", images: ["assets/images/ph-3.jpg", "assets/images/ph-1.jpg", "assets/images/ph-2.jpg"] }
+        ],
         modelUrl: "https://playground.babylonjs.com/full.html#6XIT28#5",
         bestseller: true,
         stock: true,
@@ -20,6 +25,11 @@ const products = [
         productType: "Type 1",
         description: "Pantalon chino noir élégant et confortable. Parfait pour le travail ou les sorties décontractées.",
         images: ["assets/images/ph-1.jpg", "assets/images/ph-2.jpg", "assets/images/ph-3.jpg"],
+        variants: [
+            { color: "#000000", colorName: "Noir", images: ["assets/images/ph-1.jpg", "assets/images/ph-2.jpg", "assets/images/ph-3.jpg"] },
+            { color: "#FFFFFF", colorName: "Blanc", images: ["assets/images/ph-2.jpg", "assets/images/ph-3.jpg", "assets/images/ph-1.jpg"] },
+            { color: "#FF0000", colorName: "Rouge", images: ["assets/images/ph-3.jpg", "assets/images/ph-1.jpg", "assets/images/ph-2.jpg"] }
+        ],
         modelUrl: "https://playground.babylonjs.com/full.html#6XIT28#5",
         bestseller: false,
         stock: true,

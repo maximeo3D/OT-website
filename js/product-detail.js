@@ -63,6 +63,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     </span>
                 </div>
             </div>
+            ${product.variants && product.variants.length > 0 ? `
+            <div class="color-selector">
+                <label class="color-label">Couleur :</label>
+                <div class="color-options" id="color-options">
+                    ${product.variants.map((variant, index) => `
+                        <button class="color-swatch ${index === 0 ? 'active' : ''}" 
+                                data-variant-index="${index}"
+                                style="background-color: ${variant.color}; ${variant.color === '#FFFFFF' ? 'border: 1px solid #ddd;' : ''}"
+                                title="${variant.colorName}"
+                                onclick="switchVariant(${index})">
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+            ` : ''}
             <div class="product-description">
                 <p>${product.description}</p>
             </div>
@@ -91,4 +106,46 @@ window.load3DModel = function (url, thumbnail) {
     // Load iframe
     const mainImage = document.getElementById('main-image');
     mainImage.innerHTML = `<iframe src="${url}" class="model-viewer-container" title="3D Viewer"></iframe>`;
+};
+
+// Global function for switching color variants
+window.switchVariant = function (variantIndex) {
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get('id');
+    const product = getProductById(productId);
+    
+    if (!product || !product.variants || !product.variants[variantIndex]) {
+        return;
+    }
+    
+    const variant = product.variants[variantIndex];
+    const mainImage = document.getElementById('main-image');
+    const thumbnailList = document.querySelector('.thumbnail-list');
+    
+    // Update main image
+    mainImage.innerHTML = `<img src="${variant.images[0]}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;">`;
+    
+    // Update thumbnails
+    let newThumbnails = variant.images.map((img, index) => `
+        <div class="thumbnail ${index === 0 ? 'active' : ''}" onclick="changeImage('${img}', this)">
+            <img src="${img}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+    `).join('');
+    
+    // Add 3D thumbnail if exists
+    if (product.modelUrl) {
+        newThumbnails += `
+            <div class="thumbnail thumbnail-3d" onclick="load3DModel('${product.modelUrl}', this)">
+                <img src="assets/3d-icon.svg" alt="3D View">
+                <span style="font-size: 0.7rem; text-align: center; margin-top: 0.25rem;">Voir en 3D</span>
+            </div>
+        `;
+    }
+    
+    thumbnailList.innerHTML = newThumbnails;
+    
+    // Update active color swatch
+    document.querySelectorAll('.color-swatch').forEach((swatch, index) => {
+        swatch.classList.toggle('active', index === variantIndex);
+    });
 };
