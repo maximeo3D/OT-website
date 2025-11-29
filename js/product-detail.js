@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Generate Images HTML
     let imagesHtml = product.images.map((img, index) => `
         <div class="thumbnail ${index === 0 ? 'active' : ''}" onclick="changeImage('${img}', this)">
-            <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 0.8rem;">IMG</div>
+            <img src="${img}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;">
         </div>
     `).join('');
 
@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         imagesHtml += `
             <div class="thumbnail thumbnail-3d" onclick="load3DModel('${product.modelUrl}', this)">
                 <img src="assets/3d-icon.svg" alt="3D View">
+                <span style="font-size: 0.7rem; text-align: center; margin-top: 0.25rem;">Voir en 3D</span>
             </div>
         `;
     }
@@ -39,11 +40,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const inStock = product.stock !== false;
     const promoActive = typeof product.promo === 'number' && product.promo > 0;
     const promoPrice = promoActive ? Number((product.price * (1 - product.promo / 100)).toFixed(2)) : product.price;
+    const mainImageSrc = product.images && product.images.length > 0 ? product.images[0] : 'assets/product-placeholder.svg';
 
     container.innerHTML = `
         <div class="product-gallery">
             <div class="main-image" id="main-image">
-                <span>IMG</span>
+                <img src="${mainImageSrc}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;">
             </div>
             <div class="thumbnail-list">
                 ${imagesHtml}
@@ -75,10 +77,9 @@ window.changeImage = function (src, thumbnail) {
     document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
     thumbnail.classList.add('active');
 
-    // Reset main image content
+    // Update main image
     const mainImage = document.getElementById('main-image');
-    mainImage.innerHTML = '<span>IMG</span>';
-    // In a real app, we would set the background image or img src here
+    mainImage.innerHTML = `<img src="${src}" alt="Product" style="width: 100%; height: 100%; object-fit: cover;">`;
 };
 
 // Global function for loading 3D model

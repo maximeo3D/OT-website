@@ -93,15 +93,25 @@
         /* 3D Viewer Styles */
         .thumbnail-3d {
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             background-color: #f0f0f0;
             border: 1px solid #ddd;
+            padding: 0.5rem;
+            gap: 0.25rem;
         }
 
         .thumbnail-3d img {
             width: 24px;
             height: 24px;
+        }
+        
+        .thumbnail-3d span {
+            font-size: 0.7rem;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .model-viewer-container {

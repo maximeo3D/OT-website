@@ -147,18 +147,21 @@ document.addEventListener('DOMContentLoaded', () => {
             card.style.textDecoration = 'none';
             card.style.color = 'inherit';
 
+            const cardImageSrc = product.images && product.images.length > 0 ? product.images[0] : 'assets/product-placeholder.svg';
+            
             card.innerHTML = `
                 <div class="card-image">
-                    <span style="font-size: 3rem; color: #ccc;">IMG</span>
+                    <img src="${cardImageSrc}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;">
                 </div>
                 <div class="card-content">
                     <h2 class="card-title">${product.name}</h2>
                     <div class="card-pricing">
                         <p class="card-price${(!isInStock || promoActive) ? ' out-of-stock' : ''}">${formatPrice(product.price)}</p>
                         ${promoActive ? `<p class="card-price promo">${formatPrice(promoPrice)}</p>
-                            <span class="promo-pill">-${product.promo}%</span>` : ''}
-                        <span class="stock-status ${isInStock ? 'in-stock' : 'out-stock'}">${isInStock ? 'En stock' : 'Rupture de stock'}</span>
+                            <span class="promo-pill">-${product.promo}%</span>
+                            <span class="stock-status ${isInStock ? 'in-stock' : 'out-stock'}">${isInStock ? 'En stock' : 'Rupture de stock'}</span>` : ''}
                     </div>
+                    ${!promoActive ? `<p class="stock-status ${isInStock ? 'in-stock' : 'out-stock'}" style="margin-top: 0.35rem;">${isInStock ? 'En stock' : 'Rupture de stock'}</p>` : ''}
                 </div>
             `;
 
