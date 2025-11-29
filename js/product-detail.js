@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${product.variants.map((variant, index) => `
                         <button class="color-swatch ${index === 0 ? 'active' : ''}" 
                                 data-variant-index="${index}"
-                                style="background-color: ${variant.color}; ${variant.color === '#FFFFFF' ? 'border: 1px solid #ddd;' : ''}"
+                                style="background-color: ${variant.color}; ${variant.color === '#FFFFFF' ? 'border: 1px solid #999;' : ''}"
                                 title="${variant.colorName}"
                                 onclick="switchVariant(${index})">
                         </button>

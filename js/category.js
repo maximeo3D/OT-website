@@ -155,6 +155,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="card-content">
                     <h2 class="card-title">${product.name}</h2>
+                    ${product.variants && product.variants.length > 0 ? `
+                    <div class="card-color-swatches">
+                        ${product.variants.map(variant => `
+                            <span class="card-color-dot" style="background-color: ${variant.color}; ${variant.color === '#FFFFFF' ? 'border: 1px solid #999;' : ''}" title="${variant.colorName}"></span>
+                        `).join('')}
+                    </div>
+                    ` : ''}
                     <div class="card-pricing">
                         <p class="card-price${(!isInStock || promoActive) ? ' out-of-stock' : ''}">${formatPrice(product.price)}</p>
                         ${promoActive ? `<p class="card-price promo">${formatPrice(promoPrice)}</p>
