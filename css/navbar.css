@@ -1,7 +1,9 @@
 .navbar {
     position: sticky;
     top: 0;
-    background-color: var(--bg-color);
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border-bottom: 2px solid var(--border-color);
     z-index: 1000;
     height: 80px;
@@ -68,7 +70,7 @@
     border: 1px solid var(--border-color);
     padding: 0.2rem 0.5rem;
     margin-left: 1rem;
-    background-color: #fff;
+    background-color: rgba(255, 255, 255, 0.9);
 }
 
 .search-input {
@@ -78,6 +80,7 @@
     font-family: inherit;
     font-size: 0.9rem;
     width: 150px;
+    background-color: transparent;
 }
 
 .search-icon {
