@@ -15,6 +15,19 @@
 @media (max-width: 768px) {
     .navbar {
         padding: 0 1.5rem;
+        height: 80px;
+    }
+
+    .navbar-logo {
+        padding: 0;
+    }
+
+    .navbar-logo img {
+        height: 100px;
+    }
+
+    .hamburger {
+        margin-right: 0;
     }
 
     .hamburger {

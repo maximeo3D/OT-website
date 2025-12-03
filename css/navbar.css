@@ -20,7 +20,9 @@ body {
 }
 
 .navbar-logo img {
+    position: relative;
     height: 100px;
+    left: -20px;
     width: auto;
 }
 
