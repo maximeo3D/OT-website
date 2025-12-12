@@ -44,10 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     container.innerHTML = `
         <div class="product-gallery">
-            <div class="main-image" id="main-image">
-                <img src="${mainImageSrc}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;">
-            </div>
-            <div class="thumbnail-list">
+            <div class="main-image" id="main-image"></div>
+            <div class="thumbnail-list" id="thumbnail-list">
                 ${imagesHtml}
             </div>
         </div>
@@ -84,17 +82,28 @@ document.addEventListener('DOMContentLoaded', () => {
             <button class="add-to-cart">Ajouter au panier</button>
         </div>
     `;
+
+    setMainImage(mainImageSrc, product.name);
 });
+
+// Helper to set the main image with zoom handlers
+function setMainImage(src, altText = 'Product') {
+    const mainImage = document.getElementById('main-image');
+    if (!mainImage) return;
+
+    mainImage.classList.remove('zoomed');
+    mainImage.classList.remove('no-zoom-icon');
+    mainImage.innerHTML = `<img src="${src}" alt="${altText}" style="width: 100%; height: 100%; object-fit: cover;">`;
+    attachZoomHandlers(mainImage);
+}
 
 // Global function for image switching
 window.changeImage = function (src, thumbnail) {
     // Update active state
     document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-    thumbnail.classList.add('active');
+    if (thumbnail) thumbnail.classList.add('active');
 
-    // Update main image
-    const mainImage = document.getElementById('main-image');
-    mainImage.innerHTML = `<img src="${src}" alt="Product" style="width: 100%; height: 100%; object-fit: cover;">`;
+    setMainImage(src);
 };
 
 // Global function for loading 3D model
@@ -105,6 +114,8 @@ window.load3DModel = function (url, thumbnail) {
 
     // Load iframe
     const mainImage = document.getElementById('main-image');
+    mainImage.classList.remove('zoomed');
+    mainImage.classList.add('no-zoom-icon');
     mainImage.innerHTML = `<iframe src="${url}" class="model-viewer-container" title="3D Viewer"></iframe>`;
 };
 
@@ -123,7 +134,7 @@ window.switchVariant = function (variantIndex) {
     const thumbnailList = document.querySelector('.thumbnail-list');
     
     // Update main image
-    mainImage.innerHTML = `<img src="${variant.images[0]}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;">`;
+    setMainImage(variant.images[0], product.name);
     
     // Update thumbnails
     let newThumbnails = variant.images.map((img, index) => `
@@ -149,3 +160,35 @@ window.switchVariant = function (variantIndex) {
         swatch.classList.toggle('active', index === variantIndex);
     });
 };
+
+function attachZoomHandlers(mainImageEl) {
+    const img = mainImageEl.querySelector('img');
+    if (!img) return;
+
+    mainImageEl.onmouseenter = null;
+    mainImageEl.onmousemove = null;
+    mainImageEl.onclick = null;
+    mainImageEl.onmouseleave = null;
+
+    mainImageEl.onclick = () => {
+        const isZoomed = mainImageEl.classList.toggle('zoomed');
+        if (!isZoomed) {
+            img.style.transformOrigin = 'center center';
+        }
+    };
+
+    mainImageEl.onmousemove = (e) => {
+        if (!mainImageEl.classList.contains('zoomed')) return;
+        const rect = mainImageEl.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        img.style.transformOrigin = `${x}% ${y}%`;
+    };
+
+    mainImageEl.onmouseleave = () => {
+        if (mainImageEl.classList.contains('zoomed')) {
+            mainImageEl.classList.remove('zoomed');
+            img.style.transformOrigin = 'center center';
+        }
+    };
+}
