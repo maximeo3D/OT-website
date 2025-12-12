@@ -1,37 +1,19 @@
 const products = [
     {
         id: 1,
-        name: "T-Shirt Basique",
-        price: 25.00,
+        name: "Poignée avant",
+        price: 28.99,
         category: "Accessoires d'arme",
         productType: "Type 1",
-        description: "Un t-shirt en coton bio d'une douceur incomparable. Coupe ajustée, idéal pour le quotidien. Disponible en plusieurs coloris.",
-        images: ["assets/images/ph-1.jpg", "assets/images/ph-2.jpg", "assets/images/ph-3.jpg"],
+        description: "Poignée avant pour AR-15 et AR-10. Conçue pour une prise de main optimale et une manipulation facile.",
+        images: ["assets/images/grip_black_side.png", "assets/images/grip_black_iso.png"],
         variants: [
-            { color: "#000000", colorName: "Noir", images: ["assets/images/ph-1.jpg", "assets/images/ph-2.jpg", "assets/images/ph-3.jpg"] },
-            { color: "#FFFFFF", colorName: "Blanc", images: ["assets/images/ph-2.jpg", "assets/images/ph-3.jpg", "assets/images/ph-1.jpg"] },
-            { color: "#FF0000", colorName: "Rouge", images: ["assets/images/ph-3.jpg", "assets/images/ph-1.jpg", "assets/images/ph-2.jpg"] }
+            { color: "#000000", colorName: "Noir", images: ["assets/images/grip_black_side.png", "assets/images/grip_black_iso.png"] },
+            { color: "#9D8975", colorName: "Sable", images: ["assets/images/grip_sable_side.png", "assets/images/grip_sable_iso.png"] },
+            { color: "#47522D", colorName: "Kaki", images: ["assets/images/grip_kaki_side.png", "assets/images/grip_kaki_iso.png"] }
         ],
-        modelUrl: "https://playground.babylonjs.com/full.html#6XIT28#5",
+        modelUrl: "https://maximeo3d.github.io/3D-grip/",
         bestseller: true,
-        stock: true,
-        promo: 20
-    },
-    {
-        id: 2,
-        name: "Pantalon Noir",
-        price: 60.00,
-        category: "Accessoires d'arme",
-        productType: "Type 1",
-        description: "Pantalon chino noir élégant et confortable. Parfait pour le travail ou les sorties décontractées.",
-        images: ["assets/images/ph-1.jpg", "assets/images/ph-2.jpg", "assets/images/ph-3.jpg"],
-        variants: [
-            { color: "#000000", colorName: "Noir", images: ["assets/images/ph-1.jpg", "assets/images/ph-2.jpg", "assets/images/ph-3.jpg"] },
-            { color: "#FFFFFF", colorName: "Blanc", images: ["assets/images/ph-2.jpg", "assets/images/ph-3.jpg", "assets/images/ph-1.jpg"] },
-            { color: "#FF0000", colorName: "Rouge", images: ["assets/images/ph-3.jpg", "assets/images/ph-1.jpg", "assets/images/ph-2.jpg"] }
-        ],
-        modelUrl: "https://playground.babylonjs.com/full.html#6XIT28#5",
-        bestseller: false,
         stock: true,
         promo: 0
     },
@@ -58,18 +40,6 @@ const products = [
         bestseller: true,
         stock: true,
         promo: 0
-    },
-    {
-        id: 5,
-        name: "Sneakers Graphite",
-        price: 95.00,
-        category: "Accessoires d'arme",
-        productType: "Type 3",
-        description: "Basket montante en cuir grainé avec semelle cousue. Confort premium pour les journées actives.",
-        images: ["assets/images/ph-1.jpg", "assets/images/ph-2.jpg", "assets/images/ph-3.jpg"],
-        bestseller: true,
-        stock: true,
-        promo: 10
     },
     {
         id: 6,
