@@ -20,33 +20,41 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update page title
     document.title = `Site Vitrine - ${product.name}`;
 
-    // Generate Images HTML
-    let imagesHtml = product.images.map((img, index) => `
-        <div class="thumbnail ${index === 0 ? 'active' : ''}" onclick="changeImage('${img}', this)">
-            <img src="${img}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-    `).join('');
-
-    // Add 3D Thumbnail if modelUrl exists
-    if (product.modelUrl) {
-        imagesHtml += `
-            <div class="thumbnail thumbnail-3d" onclick="load3DModel('${product.modelUrl}', this)">
-                <img src="assets/3d-icon.svg" alt="3D View">
-                <span style="font-size: 0.7rem; text-align: center; margin-top: 0.25rem;">Voir en 3D</span>
-            </div>
-        `;
-    }
-
     const inStock = product.stock !== false;
     const promoActive = typeof product.promo === 'number' && product.promo > 0;
     const promoPrice = promoActive ? Number((product.price * (1 - product.promo / 100)).toFixed(2)) : product.price;
-    const mainImageSrc = product.images && product.images.length > 0 ? product.images[0] : 'assets/product-placeholder.svg';
 
     container.innerHTML = `
         <div class="product-gallery">
-            <div class="main-image" id="main-image"></div>
-            <div class="thumbnail-list" id="thumbnail-list">
-                ${imagesHtml}
+            <!-- Desktop gallery -->
+            <div class="main-image" id="main-image">
+                <img src="${product.images && product.images[0] ? product.images[0] : 'assets/product-placeholder.svg'}" alt="${product.name}">
+            </div>
+            <div class="thumbnail-list">
+                ${product.images && product.images.length > 0 ? product.images.map((img, i) => `
+                    <div class="thumbnail ${i === 0 ? 'active' : ''}" onclick="changeImage('${img}', ${i})">
+                        <img src="${img}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                `).join('') : ''}
+                ${product.modelUrl ? `
+                    <div class="thumbnail thumbnail-3d" onclick="open3D('${product.modelUrl}')">
+                        <img src="assets/3d-icon.svg" alt="3D View">
+                        <span>Voir en 3D</span>
+                    </div>
+                ` : ''}
+            </div>
+
+            <!-- Mobile gallery slider -->
+            ${product.modelUrl ? `
+            <div class="hero-3d-button" onclick="open3D('${product.modelUrl}')">
+                <img src="assets/3d-icon.svg" alt="3D View">
+                <span>3D</span>
+            </div>` : ''}
+            <div class="hero-track" id="hero-track">
+                ${renderSlides(product.images, product.name)}
+            </div>
+            <div class="gallery-progress" id="gallery-progress">
+                <div class="progress-bar-inner"></div>
             </div>
         </div>
         <div class="product-info">
@@ -82,113 +90,180 @@ document.addEventListener('DOMContentLoaded', () => {
             <button class="add-to-cart">Ajouter au panier</button>
         </div>
     `;
-
-    setMainImage(mainImageSrc, product.name);
+    window.__currentProduct = product;
+    setupGalleryProgress();
+    setupImageZoom();
 });
 
-// Helper to set the main image with zoom handlers
-function setMainImage(src, altText = 'Product') {
-    const mainImage = document.getElementById('main-image');
-    if (!mainImage) return;
-
-    mainImage.classList.remove('zoomed');
-    mainImage.classList.remove('no-zoom-icon');
-    mainImage.innerHTML = `<img src="${src}" alt="${altText}" style="width: 100%; height: 100%; object-fit: cover;">`;
-    attachZoomHandlers(mainImage);
+function renderSlides(images, altText) {
+    if (!images || !images.length) return `<div class="hero-slide"><img src="assets/product-placeholder.svg" alt="${altText}"></div>`;
+    return images.map(img => `
+        <div class="hero-slide">
+            <img src="${img}" alt="${altText}">
+        </div>
+    `).join('');
 }
-
-// Global function for image switching
-window.changeImage = function (src, thumbnail) {
-    // Update active state
-    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-    if (thumbnail) thumbnail.classList.add('active');
-
-    setMainImage(src);
-};
-
-// Global function for loading 3D model
-window.load3DModel = function (url, thumbnail) {
-    // Update active state
-    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-    thumbnail.classList.add('active');
-
-    // Load iframe
-    const mainImage = document.getElementById('main-image');
-    mainImage.classList.remove('zoomed');
-    mainImage.classList.add('no-zoom-icon');
-    mainImage.innerHTML = `<iframe src="${url}" class="model-viewer-container" title="3D Viewer"></iframe>`;
-};
 
 // Global function for switching color variants
 window.switchVariant = function (variantIndex) {
-    const params = new URLSearchParams(window.location.search);
-    const productId = params.get('id');
-    const product = getProductById(productId);
-    
-    if (!product || !product.variants || !product.variants[variantIndex]) {
-        return;
-    }
-    
+    const product = window.__currentProduct;
+    if (!product || !product.variants || !product.variants[variantIndex]) return;
+
     const variant = product.variants[variantIndex];
+    
+    // Update mobile slider
+    const track = document.getElementById('hero-track');
+    if (track) {
+        track.dataset.has3d = '';
+        track.innerHTML = renderSlides(variant.images, product.name);
+    }
+
+    // Update desktop gallery
     const mainImage = document.getElementById('main-image');
+    if (mainImage && variant.images && variant.images[0]) {
+        const img = mainImage.querySelector('img');
+        if (img) img.src = variant.images[0];
+    }
+
+    // Update desktop thumbnails
     const thumbnailList = document.querySelector('.thumbnail-list');
-    
-    // Update main image
-    setMainImage(variant.images[0], product.name);
-    
-    // Update thumbnails
-    let newThumbnails = variant.images.map((img, index) => `
-        <div class="thumbnail ${index === 0 ? 'active' : ''}" onclick="changeImage('${img}', this)">
-            <img src="${img}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-    `).join('');
-    
-    // Add 3D thumbnail if exists
-    if (product.modelUrl) {
-        newThumbnails += `
-            <div class="thumbnail thumbnail-3d" onclick="load3DModel('${product.modelUrl}', this)">
-                <img src="assets/3d-icon.svg" alt="3D View">
-                <span style="font-size: 0.7rem; text-align: center; margin-top: 0.25rem;">Voir en 3D</span>
-            </div>
+    if (thumbnailList) {
+        thumbnailList.innerHTML = `
+            ${variant.images && variant.images.length > 0 ? variant.images.map((img, i) => `
+                <div class="thumbnail ${i === 0 ? 'active' : ''}" onclick="changeImage('${img}', ${i})">
+                    <img src="${img}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+            `).join('') : ''}
+            ${product.modelUrl ? `
+                <div class="thumbnail thumbnail-3d" onclick="open3D('${product.modelUrl}')">
+                    <img src="assets/3d-icon.svg" alt="3D View">
+                    <span>Voir en 3D</span>
+                </div>
+            ` : ''}
         `;
     }
-    
-    thumbnailList.innerHTML = newThumbnails;
-    
+
     // Update active color swatch
     document.querySelectorAll('.color-swatch').forEach((swatch, index) => {
         swatch.classList.toggle('active', index === variantIndex);
     });
+
+    setupGalleryProgress();
 };
 
-function attachZoomHandlers(mainImageEl) {
-    const img = mainImageEl.querySelector('img');
-    if (!img) return;
-
-    mainImageEl.onmouseenter = null;
-    mainImageEl.onmousemove = null;
-    mainImageEl.onclick = null;
-    mainImageEl.onmouseleave = null;
-
-    mainImageEl.onclick = () => {
-        const isZoomed = mainImageEl.classList.toggle('zoomed');
-        if (!isZoomed) {
-            img.style.transformOrigin = 'center center';
+// Global function for loading 3D model
+window.open3D = function (url) {
+    const product = window.__currentProduct;
+    if (!url) return;
+    
+    // Desktop: Replace main image with 3D viewer
+    const mainImage = document.getElementById('main-image');
+    if (mainImage) {
+        mainImage.classList.add('no-zoom-icon');
+        mainImage.innerHTML = `<iframe src="${url}" class="model-viewer-container" title="3D Viewer" style="width:100%; height:100%; border:0;"></iframe>`;
+        
+        // Remove active class from all thumbnails
+        document.querySelectorAll('.thumbnail').forEach(thumb => {
+            thumb.classList.remove('active');
+        });
+    }
+    
+    // Mobile: Add 3D slide to track
+    const track = document.getElementById('hero-track');
+    if (track) {
+        // Create a dedicated 3D slide and append if not already present
+        if (!track.dataset.has3d) {
+            const slide = document.createElement('div');
+            slide.className = 'hero-slide';
+            slide.innerHTML = `<iframe src="${url}" class="model-viewer-container" title="3D Viewer" style="width:100%; height:100%; border:0;"></iframe>`;
+            track.appendChild(slide);
+            track.dataset.has3d = 'true';
         }
+
+        // Scroll to the last slide (3D)
+        const last = track.lastElementChild;
+        if (last) {
+            last.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+        }
+
+        setupGalleryProgress();
+    }
+};
+
+function setupGalleryProgress() {
+    const track = document.getElementById('hero-track');
+    const bar = document.getElementById('gallery-progress');
+    const inner = bar ? bar.querySelector('.progress-bar-inner') : null;
+    if (!track || !inner) return;
+
+    const update = () => {
+        const slides = track.children.length;
+        if (!slides) return;
+        const width = track.clientWidth || 1;
+        const index = Math.round(track.scrollLeft / width);
+        const progress = Math.min(100, Math.max(0, ((index + 1) / slides) * 100));
+        inner.style.width = `${progress}%`;
     };
 
-    mainImageEl.onmousemove = (e) => {
-        if (!mainImageEl.classList.contains('zoomed')) return;
-        const rect = mainImageEl.getBoundingClientRect();
+    track.addEventListener('scroll', () => {
+        window.requestAnimationFrame(update);
+    });
+
+    update();
+}
+
+// Global function for changing desktop main image
+window.changeImage = function(imageSrc, index) {
+    const mainImage = document.getElementById('main-image');
+    if (!mainImage) return;
+    
+    const img = mainImage.querySelector('img');
+    if (img) {
+        img.src = imageSrc;
+    }
+    
+    // Update active thumbnail
+    document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
+        thumb.classList.toggle('active', i === index);
+    });
+};
+
+// Setup image zoom functionality for desktop
+function setupImageZoom() {
+    const mainImage = document.getElementById('main-image');
+    if (!mainImage) return;
+    
+    let isZoomed = false;
+    
+    mainImage.addEventListener('click', function(e) {
+        const img = this.querySelector('img');
+        if (!img) return;
+        
+        isZoomed = !isZoomed;
+        
+        if (isZoomed) {
+            this.classList.add('zoomed');
+            
+            // Calculate transform origin based on click position
+            const rect = this.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            img.style.transformOrigin = `${x}% ${y}%`;
+        } else {
+            this.classList.remove('zoomed');
+            img.style.transformOrigin = 'center center';
+        }
+    });
+    
+    mainImage.addEventListener('mousemove', function(e) {
+        if (!isZoomed) return;
+        
+        const img = this.querySelector('img');
+        if (!img) return;
+        
+        const rect = this.getBoundingClientRect();
         const x = ((e.clientX - rect.left) / rect.width) * 100;
         const y = ((e.clientY - rect.top) / rect.height) * 100;
         img.style.transformOrigin = `${x}% ${y}%`;
-    };
-
-    mainImageEl.onmouseleave = () => {
-        if (mainImageEl.classList.contains('zoomed')) {
-            mainImageEl.classList.remove('zoomed');
-            img.style.transformOrigin = 'center center';
-        }
-    };
+    });
 }

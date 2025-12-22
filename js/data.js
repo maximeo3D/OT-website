@@ -1,7 +1,7 @@
 const products = [
     {
         id: 1,
-        name: "Poignée avant",
+        name: "Poignée avant angulaire",
         price: 28.99,
         category: "Accessoires d'arme",
         productType: "Type 1",
