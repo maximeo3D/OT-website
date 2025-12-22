@@ -109,6 +109,22 @@
             border: none;
         }
 
+        .loader-3d-overlay {
+            position: absolute;
+            inset: 0;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 101;
+        }
+
+        .loader-3d-overlay img {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+        }
+
         /* Disable zoom when 3D is active */
         .main-image:has(.desktop-3d-overlay.active) {
             cursor: default;
@@ -406,6 +422,10 @@
                 width: 100%;
                 height: 100%;
                 border: none;
+            }
+
+            .mobile-3d-overlay .loader-3d-overlay {
+                z-index: 101;
             }
 
             .gallery-progress {

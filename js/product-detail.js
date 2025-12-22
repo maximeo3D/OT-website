@@ -39,9 +39,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 <!-- Desktop 3D Overlay -->
                 ${product.modelUrl ? `
-                <div class="viewer-3d-overlay desktop-3d-overlay" id="desktop-3d-overlay">
+            <div class="viewer-3d-overlay desktop-3d-overlay" id="desktop-3d-overlay" data-model-url="${product.modelUrl}">
+                <div class="loader-3d-overlay" id="desktop-3d-loader">
+                    <img src="assets/3d_loader.gif" alt="Chargement 3D">
+                </div>
                     <div class="close-3d-button" onclick="event.stopPropagation(); close3D()">✕</div>
-                    <iframe src="${product.modelUrl}" title="3D Viewer"></iframe>
+                    <iframe id="desktop-3d-iframe" title="3D Viewer"></iframe>
                 </div>` : ''}
             </div>
             <div class="thumbnail-list">
@@ -67,9 +70,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             <!-- Mobile 3D Overlay -->
             ${product.modelUrl ? `
-            <div class="viewer-3d-overlay mobile-3d-overlay" id="mobile-3d-overlay">
+            <div class="viewer-3d-overlay mobile-3d-overlay" id="mobile-3d-overlay" data-model-url="${product.modelUrl}">
+                <div class="loader-3d-overlay" id="mobile-3d-loader">
+                    <img src="assets/3d_loader.gif" alt="Chargement 3D">
+                </div>
                 <div class="close-3d-button" onclick="event.stopPropagation(); close3D()">✕</div>
-                <iframe src="${product.modelUrl}" title="3D Viewer"></iframe>
+                <iframe id="mobile-3d-iframe" title="3D Viewer"></iframe>
             </div>` : ''}
         </div>
         <div class="product-info">
@@ -167,7 +173,55 @@ window.open3D = function (url) {
     const mobileOverlay = document.getElementById('mobile-3d-overlay');
     const desktopButton = document.getElementById('desktop-3d-button');
     const mobileButton = document.getElementById('mobile-3d-button');
+    const desktopLoader = document.getElementById('desktop-3d-loader');
+    const mobileLoader = document.getElementById('mobile-3d-loader');
+    const desktopIframe = document.getElementById('desktop-3d-iframe');
+    const mobileIframe = document.getElementById('mobile-3d-iframe');
     
+    // Load iframe src only on first click - loader shown only once
+    if (desktopIframe && !desktopIframe.src) {
+        const modelUrl = desktopOverlay.getAttribute('data-model-url');
+        if (modelUrl) {
+            // Show loader ONLY on first load (when iframe has no src yet)
+            if (desktopLoader) {
+                desktopLoader.style.display = 'flex';
+            }
+            
+            desktopIframe.addEventListener('load', () => {
+                // Wait extra time for Babylon.js to load 3D assets
+                setTimeout(() => {
+                    if (desktopLoader) {
+                        desktopLoader.style.display = 'none';
+                    }
+                }, 1000); // 2 seconds delay after iframe loads
+            }, { once: true });
+            
+            desktopIframe.src = modelUrl;
+        }
+    }
+    
+    if (mobileIframe && !mobileIframe.src) {
+        const modelUrl = mobileOverlay.getAttribute('data-model-url');
+        if (modelUrl) {
+            // Show loader only on first load
+            if (mobileLoader) {
+                mobileLoader.style.display = 'flex';
+            }
+            
+            mobileIframe.addEventListener('load', () => {
+                // Wait extra time for Babylon.js to load 3D assets
+                setTimeout(() => {
+                    if (mobileLoader) {
+                        mobileLoader.style.display = 'none';
+                    }
+                }, 1000); // 1 second delay after iframe loads
+            }, { once: true });
+            
+            mobileIframe.src = modelUrl;
+        }
+    }
+    
+    // Show overlays
     if (desktopOverlay) {
         desktopOverlay.classList.add('active');
     }
@@ -192,6 +246,8 @@ window.close3D = function () {
     const mobileOverlay = document.getElementById('mobile-3d-overlay');
     const desktopButton = document.getElementById('desktop-3d-button');
     const mobileButton = document.getElementById('mobile-3d-button');
+    const desktopLoader = document.getElementById('desktop-3d-loader');
+    const mobileLoader = document.getElementById('mobile-3d-loader');
     
     if (desktopOverlay) {
         desktopOverlay.classList.remove('active');
@@ -210,6 +266,9 @@ window.close3D = function () {
         // Reset to CSS-driven display so it stays hidden on desktop and shows on mobile
         mobileButton.style.display = '';
     }
+    
+    // Loaders stay in their current state (hidden if already loaded, shown if still loading)
+    // No need to manipulate them here - they're controlled by the load event in open3D
 };
 
 function setupGalleryProgress() {
