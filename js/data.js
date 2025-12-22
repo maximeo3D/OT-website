@@ -6,9 +6,9 @@ const products = [
         category: "Accessoires d'arme",
         productType: "Type 1",
         description: "Poignée avant pour AR-15 et AR-10. Conçue pour une prise de main optimale et une manipulation facile.",
-        images: ["assets/images/grip_black_side.png", "assets/images/grip_black_iso.png"],
+        images: ["assets/images/grip_black_side.png", "assets/images/grip_black_iso.png", "assets/images/grip_black_ar.png"],
         variants: [
-            { color: "#000000", colorName: "Noir", images: ["assets/images/grip_black_side.png", "assets/images/grip_black_iso.png"] },
+            { color: "#000000", colorName: "Noir", images: ["assets/images/grip_black_side.png", "assets/images/grip_black_iso.png", "assets/images/grip_black_ar.png"] },
             { color: "#9D8975", colorName: "Sable", images: ["assets/images/grip_sable_side.png", "assets/images/grip_sable_iso.png"] },
             { color: "#47522D", colorName: "Kaki", images: ["assets/images/grip_kaki_side.png", "assets/images/grip_kaki_iso.png"] }
         ],

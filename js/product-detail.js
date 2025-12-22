@@ -29,6 +29,20 @@ document.addEventListener('DOMContentLoaded', () => {
             <!-- Desktop gallery -->
             <div class="main-image" id="main-image">
                 <img src="${product.images && product.images[0] ? product.images[0] : 'assets/product-placeholder.svg'}" alt="${product.name}">
+                
+                <!-- Desktop 3D Button -->
+                ${product.modelUrl ? `
+                <div class="hero-3d-button desktop-3d-button" id="desktop-3d-button" onclick="event.stopPropagation(); open3D('${product.modelUrl}')">
+                    <img src="assets/3d-icon.svg" alt="3D View">
+                    <span>3D</span>
+                </div>` : ''}
+                
+                <!-- Desktop 3D Overlay -->
+                ${product.modelUrl ? `
+                <div class="viewer-3d-overlay desktop-3d-overlay" id="desktop-3d-overlay">
+                    <div class="close-3d-button" onclick="event.stopPropagation(); close3D()">✕</div>
+                    <iframe src="${product.modelUrl}" title="3D Viewer"></iframe>
+                </div>` : ''}
             </div>
             <div class="thumbnail-list">
                 ${product.images && product.images.length > 0 ? product.images.map((img, i) => `
@@ -36,17 +50,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         <img src="${img}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
                 `).join('') : ''}
-                ${product.modelUrl ? `
-                    <div class="thumbnail thumbnail-3d" onclick="open3D('${product.modelUrl}')">
-                        <img src="assets/3d-icon.svg" alt="3D View">
-                        <span>Voir en 3D</span>
-                    </div>
-                ` : ''}
             </div>
 
             <!-- Mobile gallery slider -->
             ${product.modelUrl ? `
-            <div class="hero-3d-button" onclick="open3D('${product.modelUrl}')">
+            <div class="hero-3d-button mobile-3d-button" id="mobile-3d-button" onclick="event.stopPropagation(); open3D('${product.modelUrl}')">
                 <img src="assets/3d-icon.svg" alt="3D View">
                 <span>3D</span>
             </div>` : ''}
@@ -56,6 +64,13 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="gallery-progress" id="gallery-progress">
                 <div class="progress-bar-inner"></div>
             </div>
+
+            <!-- Mobile 3D Overlay -->
+            ${product.modelUrl ? `
+            <div class="viewer-3d-overlay mobile-3d-overlay" id="mobile-3d-overlay">
+                <div class="close-3d-button" onclick="event.stopPropagation(); close3D()">✕</div>
+                <iframe src="${product.modelUrl}" title="3D Viewer"></iframe>
+            </div>` : ''}
         </div>
         <div class="product-info">
             <h1>${product.name}</h1>
@@ -92,7 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     window.__currentProduct = product;
     setupGalleryProgress();
-    setupImageZoom();
 });
 
 function renderSlides(images, altText) {
@@ -134,12 +148,6 @@ window.switchVariant = function (variantIndex) {
                     <img src="${img}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;">
                 </div>
             `).join('') : ''}
-            ${product.modelUrl ? `
-                <div class="thumbnail thumbnail-3d" onclick="open3D('${product.modelUrl}')">
-                    <img src="assets/3d-icon.svg" alt="3D View">
-                    <span>Voir en 3D</span>
-                </div>
-            ` : ''}
         `;
     }
 
@@ -153,40 +161,54 @@ window.switchVariant = function (variantIndex) {
 
 // Global function for loading 3D model
 window.open3D = function (url) {
-    const product = window.__currentProduct;
     if (!url) return;
     
-    // Desktop: Replace main image with 3D viewer
-    const mainImage = document.getElementById('main-image');
-    if (mainImage) {
-        mainImage.classList.add('no-zoom-icon');
-        mainImage.innerHTML = `<iframe src="${url}" class="model-viewer-container" title="3D Viewer" style="width:100%; height:100%; border:0;"></iframe>`;
-        
-        // Remove active class from all thumbnails
-        document.querySelectorAll('.thumbnail').forEach(thumb => {
-            thumb.classList.remove('active');
-        });
+    const desktopOverlay = document.getElementById('desktop-3d-overlay');
+    const mobileOverlay = document.getElementById('mobile-3d-overlay');
+    const desktopButton = document.getElementById('desktop-3d-button');
+    const mobileButton = document.getElementById('mobile-3d-button');
+    
+    if (desktopOverlay) {
+        desktopOverlay.classList.add('active');
     }
     
-    // Mobile: Add 3D slide to track
-    const track = document.getElementById('hero-track');
-    if (track) {
-        // Create a dedicated 3D slide and append if not already present
-        if (!track.dataset.has3d) {
-            const slide = document.createElement('div');
-            slide.className = 'hero-slide';
-            slide.innerHTML = `<iframe src="${url}" class="model-viewer-container" title="3D Viewer" style="width:100%; height:100%; border:0;"></iframe>`;
-            track.appendChild(slide);
-            track.dataset.has3d = 'true';
-        }
+    if (mobileOverlay) {
+        mobileOverlay.classList.add('active');
+    }
+    
+    // Hide the 3D buttons when overlay is active
+    if (desktopButton) {
+        desktopButton.style.display = 'none';
+    }
+    
+    if (mobileButton) {
+        mobileButton.style.display = 'none';
+    }
+};
 
-        // Scroll to the last slide (3D)
-        const last = track.lastElementChild;
-        if (last) {
-            last.scrollIntoView({ behavior: 'smooth', inline: 'start' });
-        }
-
-        setupGalleryProgress();
+// Global function for closing 3D overlay
+window.close3D = function () {
+    const desktopOverlay = document.getElementById('desktop-3d-overlay');
+    const mobileOverlay = document.getElementById('mobile-3d-overlay');
+    const desktopButton = document.getElementById('desktop-3d-button');
+    const mobileButton = document.getElementById('mobile-3d-button');
+    
+    if (desktopOverlay) {
+        desktopOverlay.classList.remove('active');
+    }
+    
+    if (mobileOverlay) {
+        mobileOverlay.classList.remove('active');
+    }
+    
+    // Show the 3D buttons again
+    if (desktopButton) {
+        desktopButton.style.display = 'inline-flex';
+    }
+    
+    if (mobileButton) {
+        // Reset to CSS-driven display so it stays hidden on desktop and shows on mobile
+        mobileButton.style.display = '';
     }
 };
 
@@ -228,42 +250,3 @@ window.changeImage = function(imageSrc, index) {
     });
 };
 
-// Setup image zoom functionality for desktop
-function setupImageZoom() {
-    const mainImage = document.getElementById('main-image');
-    if (!mainImage) return;
-    
-    let isZoomed = false;
-    
-    mainImage.addEventListener('click', function(e) {
-        const img = this.querySelector('img');
-        if (!img) return;
-        
-        isZoomed = !isZoomed;
-        
-        if (isZoomed) {
-            this.classList.add('zoomed');
-            
-            // Calculate transform origin based on click position
-            const rect = this.getBoundingClientRect();
-            const x = ((e.clientX - rect.left) / rect.width) * 100;
-            const y = ((e.clientY - rect.top) / rect.height) * 100;
-            img.style.transformOrigin = `${x}% ${y}%`;
-        } else {
-            this.classList.remove('zoomed');
-            img.style.transformOrigin = 'center center';
-        }
-    });
-    
-    mainImage.addEventListener('mousemove', function(e) {
-        if (!isZoomed) return;
-        
-        const img = this.querySelector('img');
-        if (!img) return;
-        
-        const rect = this.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-        img.style.transformOrigin = `${x}% ${y}%`;
-    });
-}
