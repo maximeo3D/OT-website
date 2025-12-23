@@ -36,16 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <img src="assets/3d-icon.svg" alt="3D View">
                     <span>3D</span>
                 </div>` : ''}
-                
-                <!-- Desktop 3D Overlay -->
-                ${product.modelUrl ? `
-            <div class="viewer-3d-overlay desktop-3d-overlay" id="desktop-3d-overlay" data-model-url="${product.modelUrl}">
-                <div class="loader-3d-overlay" id="desktop-3d-loader">
-                    <img src="assets/3d_loader.gif" alt="Chargement 3D">
-                </div>
-                    <div class="close-3d-button" onclick="event.stopPropagation(); close3D()">✕</div>
-                    <iframe id="desktop-3d-iframe" title="3D Viewer"></iframe>
-                </div>` : ''}
             </div>
             <div class="thumbnail-list">
                 ${product.images && product.images.length > 0 ? product.images.map((img, i) => `
@@ -67,16 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="gallery-progress" id="gallery-progress">
                 <div class="progress-bar-inner"></div>
             </div>
-
-            <!-- Mobile 3D Overlay -->
-            ${product.modelUrl ? `
-            <div class="viewer-3d-overlay mobile-3d-overlay" id="mobile-3d-overlay" data-model-url="${product.modelUrl}">
-                <div class="loader-3d-overlay" id="mobile-3d-loader">
-                    <img src="assets/3d_loader.gif" alt="Chargement 3D">
-                </div>
-                <div class="close-3d-button" onclick="event.stopPropagation(); close3D()">✕</div>
-                <iframe id="mobile-3d-iframe" title="3D Viewer"></iframe>
-            </div>` : ''}
         </div>
         <div class="product-info">
             <h1>${product.name}</h1>
@@ -113,6 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     window.__currentProduct = product;
     setupGalleryProgress();
+    ensureGlobal3DOverlay(product.modelUrl);
 });
 
 function renderSlides(images, altText) {
@@ -169,66 +150,27 @@ window.switchVariant = function (variantIndex) {
 window.open3D = function (url) {
     if (!url) return;
     
-    const desktopOverlay = document.getElementById('desktop-3d-overlay');
-    const mobileOverlay = document.getElementById('mobile-3d-overlay');
     const desktopButton = document.getElementById('desktop-3d-button');
     const mobileButton = document.getElementById('mobile-3d-button');
-    const desktopLoader = document.getElementById('desktop-3d-loader');
-    const mobileLoader = document.getElementById('mobile-3d-loader');
-    const desktopIframe = document.getElementById('desktop-3d-iframe');
-    const mobileIframe = document.getElementById('mobile-3d-iframe');
+    const overlay = ensureGlobal3DOverlay(url);
+    const loader = document.getElementById('global-3d-loader');
+    const iframe = document.getElementById('global-3d-iframe');
     
     // Load iframe src only on first click - loader shown only once
-    if (desktopIframe && !desktopIframe.src) {
-        const modelUrl = desktopOverlay.getAttribute('data-model-url');
-        if (modelUrl) {
-            // Show loader ONLY on first load (when iframe has no src yet)
-            if (desktopLoader) {
-                desktopLoader.style.display = 'flex';
-            }
-            
-            desktopIframe.addEventListener('load', () => {
-                // Wait extra time for Babylon.js to load 3D assets
-                setTimeout(() => {
-                    if (desktopLoader) {
-                        desktopLoader.style.display = 'none';
-                    }
-                }, 1000); // 2 seconds delay after iframe loads
-            }, { once: true });
-            
-            desktopIframe.src = modelUrl;
-        }
+    if (iframe && !iframe.src) {
+        if (loader) loader.style.display = 'flex';
+        iframe.addEventListener('load', () => {
+            // iframe load fires when the document is ready; wait a bit for Babylon assets
+            setTimeout(() => {
+                if (loader) loader.style.display = 'none';
+            }, 1000);
+        }, { once: true });
+        iframe.src = url;
     }
-    
-    if (mobileIframe && !mobileIframe.src) {
-        const modelUrl = mobileOverlay.getAttribute('data-model-url');
-        if (modelUrl) {
-            // Show loader only on first load
-            if (mobileLoader) {
-                mobileLoader.style.display = 'flex';
-            }
-            
-            mobileIframe.addEventListener('load', () => {
-                // Wait extra time for Babylon.js to load 3D assets
-                setTimeout(() => {
-                    if (mobileLoader) {
-                        mobileLoader.style.display = 'none';
-                    }
-                }, 1000); // 1 second delay after iframe loads
-            }, { once: true });
-            
-            mobileIframe.src = modelUrl;
-        }
-    }
-    
-    // Show overlays
-    if (desktopOverlay) {
-        desktopOverlay.classList.add('active');
-    }
-    
-    if (mobileOverlay) {
-        mobileOverlay.classList.add('active');
-    }
+
+    // Position overlay over the correct area (desktop: main image, mobile: whole gallery)
+    positionGlobal3DOverlay();
+    if (overlay) overlay.classList.add('active');
     
     // Hide the 3D buttons when overlay is active
     if (desktopButton) {
@@ -242,20 +184,11 @@ window.open3D = function (url) {
 
 // Global function for closing 3D overlay
 window.close3D = function () {
-    const desktopOverlay = document.getElementById('desktop-3d-overlay');
-    const mobileOverlay = document.getElementById('mobile-3d-overlay');
     const desktopButton = document.getElementById('desktop-3d-button');
     const mobileButton = document.getElementById('mobile-3d-button');
-    const desktopLoader = document.getElementById('desktop-3d-loader');
-    const mobileLoader = document.getElementById('mobile-3d-loader');
+    const overlay = document.getElementById('global-3d-overlay');
     
-    if (desktopOverlay) {
-        desktopOverlay.classList.remove('active');
-    }
-    
-    if (mobileOverlay) {
-        mobileOverlay.classList.remove('active');
-    }
+    if (overlay) overlay.classList.remove('active');
     
     // Show the 3D buttons again
     if (desktopButton) {
@@ -270,6 +203,51 @@ window.close3D = function () {
     // Loaders stay in their current state (hidden if already loaded, shown if still loading)
     // No need to manipulate them here - they're controlled by the load event in open3D
 };
+
+function ensureGlobal3DOverlay(modelUrl) {
+    if (!modelUrl) return null;
+    let overlay = document.getElementById('global-3d-overlay');
+    if (overlay) {
+        overlay.dataset.modelUrl = modelUrl;
+        return overlay;
+    }
+
+    overlay = document.createElement('div');
+    overlay.id = 'global-3d-overlay';
+    overlay.className = 'global-3d-overlay';
+    overlay.dataset.modelUrl = modelUrl;
+    overlay.innerHTML = `
+        <div class="loader-3d-overlay" id="global-3d-loader">
+            <img src="assets/3d_loader.gif" alt="Chargement 3D">
+        </div>
+        <div class="close-3d-button" onclick="event.stopPropagation(); close3D()">✕</div>
+        <iframe id="global-3d-iframe" title="3D Viewer"></iframe>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Reposition on resize/orientation change while active
+    window.addEventListener('resize', () => {
+        if (overlay.classList.contains('active')) positionGlobal3DOverlay();
+    });
+
+    return overlay;
+}
+
+function positionGlobal3DOverlay() {
+    const overlay = document.getElementById('global-3d-overlay');
+    if (!overlay) return;
+
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    const target = isMobile ? document.querySelector('.product-gallery') : document.getElementById('main-image');
+    if (!target) return;
+
+    const rect = target.getBoundingClientRect();
+    overlay.style.top = `${rect.top}px`;
+    overlay.style.left = `${rect.left}px`;
+    overlay.style.width = `${rect.width}px`;
+    overlay.style.height = `${rect.height}px`;
+}
 
 function setupGalleryProgress() {
     const track = document.getElementById('hero-track');
