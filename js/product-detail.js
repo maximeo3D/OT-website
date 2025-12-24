@@ -92,6 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
     `;
     window.__currentProduct = product;
+    makeHeroTrackInfinite();
     setupGalleryProgress();
     ensureGlobal3DOverlay(product.modelUrl);
 });
@@ -143,6 +144,7 @@ window.switchVariant = function (variantIndex) {
         swatch.classList.toggle('active', index === variantIndex);
     });
 
+    makeHeroTrackInfinite();
     setupGalleryProgress();
 };
 
@@ -258,20 +260,11 @@ function setupGalleryProgress() {
     const inner = bar ? bar.querySelector('.progress-bar-inner') : null;
     if (!track || !inner) return;
 
-    const update = () => {
-        const slides = track.children.length;
-        if (!slides) return;
-        const width = track.clientWidth || 1;
-        const index = Math.round(track.scrollLeft / width);
-        const progress = Math.min(100, Math.max(0, ((index + 1) / slides) * 100));
-        inner.style.width = `${progress}%`;
-    };
-
     track.addEventListener('scroll', () => {
-        window.requestAnimationFrame(update);
+        window.requestAnimationFrame(updateGalleryProgressNow);
     });
 
-    update();
+    updateGalleryProgressNow();
 }
 
 // Global function for changing desktop main image
@@ -289,4 +282,78 @@ window.changeImage = function(imageSrc, index) {
         thumb.classList.toggle('active', i === index);
     });
 };
+
+// Update progress bar based on current hero-track position (supports infinite loop clones)
+function updateGalleryProgressNow() {
+    const track = document.getElementById('hero-track');
+    const bar = document.getElementById('gallery-progress');
+    const inner = bar ? bar.querySelector('.progress-bar-inner') : null;
+    if (!track || !inner) return;
+
+    const isInfinite = track.dataset.infinite === 'true';
+    const realSlides = Number(track.dataset.slidesCount || (track.children.length - (isInfinite ? 2 : 0)));
+    if (!realSlides) return;
+
+    const width = track.clientWidth || 1;
+    const offset = isInfinite ? 1 : 0;
+    const rawIndex = (track.scrollLeft / width) - offset;
+    const index = Math.round(rawIndex);
+    const clampedIndex = Math.min(realSlides - 1, Math.max(0, index));
+    const progress = Math.min(100, Math.max(0, ((clampedIndex + 1) / realSlides) * 100));
+    inner.style.width = `${progress}%`;
+}
+
+// Make mobile hero slider loop infinitely by cloning first/last slides
+function makeHeroTrackInfinite() {
+    const track = document.getElementById('hero-track');
+    if (!track) return;
+
+    // Remove existing clones if any
+    track.querySelectorAll('.hero-slide[data-clone="true"]').forEach(node => node.remove());
+
+    const slides = Array.from(track.querySelectorAll('.hero-slide'));
+    const realCount = slides.length;
+    track.dataset.slidesCount = realCount;
+
+    if (realCount <= 1) {
+        track.dataset.infinite = 'false';
+        return;
+    }
+
+    const firstClone = slides[0].cloneNode(true);
+    const lastClone = slides[realCount - 1].cloneNode(true);
+    firstClone.dataset.clone = 'true';
+    lastClone.dataset.clone = 'true';
+
+    track.insertBefore(lastClone, track.firstChild);
+    track.appendChild(firstClone);
+    track.dataset.infinite = 'true';
+
+    // Ensure we start on the first real slide (after the prepended clone)
+    requestAnimationFrame(() => {
+        track.scrollLeft = track.clientWidth;
+        updateGalleryProgressNow();
+    });
+
+    // Attach loop handler once
+    if (!track.dataset.loopHandlerAttached) {
+        track.addEventListener('scroll', () => {
+            const width = track.clientWidth || 1;
+            const total = Number(track.dataset.slidesCount || 0);
+            if (!total) return;
+
+            const maxScroll = width * (total + 1); // last clone position
+            if (track.scrollLeft <= 1) {
+                // Jump to last real slide
+                track.scrollLeft = width * total;
+                updateGalleryProgressNow();
+            } else if (track.scrollLeft >= maxScroll) {
+                // Jump to first real slide
+                track.scrollLeft = width;
+                updateGalleryProgressNow();
+            }
+        }, { passive: true });
+        track.dataset.loopHandlerAttached = 'true';
+    }
+}
 
