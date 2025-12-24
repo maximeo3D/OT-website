@@ -230,6 +230,9 @@ function ensureGlobal3DOverlay(modelUrl) {
     window.addEventListener('resize', () => {
         if (overlay.classList.contains('active')) positionGlobal3DOverlay();
     });
+    window.addEventListener('scroll', () => {
+        if (overlay.classList.contains('active')) positionGlobal3DOverlay();
+    }, { passive: true });
 
     return overlay;
 }
@@ -243,8 +246,8 @@ function positionGlobal3DOverlay() {
     if (!target) return;
 
     const rect = target.getBoundingClientRect();
-    overlay.style.top = `${rect.top}px`;
-    overlay.style.left = `${rect.left}px`;
+    overlay.style.top = `${rect.top + window.scrollY}px`;
+    overlay.style.left = `${rect.left + window.scrollX}px`;
     overlay.style.width = `${rect.width}px`;
     overlay.style.height = `${rect.height}px`;
 }
