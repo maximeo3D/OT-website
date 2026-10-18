@@ -67,6 +67,19 @@ const products = [
         promo: 0
     },
     {
+        id: 5,
+        name: "Niveau à lunette",
+        price: 8.00,
+        category: "Accessoires de tir",
+        productType: "Type 2",
+        description: "Niveau à calles pour lunette de tir. Permet de vérifier l'horizontalité de votre optique pour un réglage précis.",
+        images: ["assets/images/ph-1.jpg", "assets/images/ph-2.jpg", "assets/images/ph-3.jpg"],
+        modelUrl: "https://maximeo3d.github.io/OT_ScopeLevelTool/",
+        bestseller: false,
+        stock: true,
+        promo: 0
+    },
+    {
         id: 6,
         name: "Magnet Barillet",
         price: 15.00,
