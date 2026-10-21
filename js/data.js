@@ -73,7 +73,12 @@ const products = [
         category: "Accessoires de tir",
         productType: "Type 2",
         description: "Niveau à calles pour lunette de tir. Permet de vérifier l'horizontalité de votre optique pour un réglage précis.",
-        images: ["assets/images/ph-1.jpg", "assets/images/ph-2.jpg", "assets/images/ph-3.jpg"],
+        images: ["assets/images/SL_wall_black.webp", "assets/images/SL_flat_black.webp", "assets/images/SL_rifle_black.webp"],
+        variants: [
+            { color: "#000000", colorName: "Noir", images: ["assets/images/SL_wall_black.webp", "assets/images/SL_flat_black.webp", "assets/images/SL_rifle_black.webp"] },
+            { color: "#808080", colorName: "Gris", images: ["assets/images/SL_wall_grey.webp", "assets/images/SL_flat_grey.webp", "assets/images/SL_rifle_grey.webp"] },
+            { color: "#FFFFFF", colorName: "Blanc", images: ["assets/images/SL_wall_white.webp", "assets/images/SL_flat_white.webp", "assets/images/SL_rifle_white.webp"] }
+        ],
         modelUrl: "https://maximeo3d.github.io/OT_ScopeLevelTool/",
         bestseller: false,
         stock: true,
