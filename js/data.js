@@ -107,6 +107,20 @@ const products = [
         bestseller: false,
         stock: true,
         promo: 0
+    },
+    {
+        id: 11,
+        name: "Produit de test",
+        price: 1.00,
+        category: "Goodies",
+        productType: "Type 3",
+        description: "Produit de démonstration pour tester la configuration 3D depuis la fiche produit (forme, couleur, drapeau, gravure).",
+        images: ["assets/images/ph-1.jpg", "assets/images/ph-2.jpg", "assets/images/ph-3.jpg"],
+        modelUrl: "https://maximeo3d.github.io/3d-config-test/",
+        configApiUrl: "https://raw.githubusercontent.com/maximeo3D/3d-config-test/refs/heads/master/api.json",
+        bestseller: false,
+        stock: true,
+        promo: 0
     }
 ];
 
