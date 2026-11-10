@@ -88,7 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="product-description">
                 <p>${product.description}</p>
             </div>
-            <div id="product-configurator" class="product-configurator"></div>
             <button class="add-to-cart">Ajouter au panier</button>
         </div>
     `;
@@ -96,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
     makeHeroTrackInfinite();
     setupGalleryProgress();
     ensureGlobal3DOverlay(product.modelUrl);
-    initProductConfigurator(product);
+    loadViewerConfig(product);
 });
 
 function renderSlides(images, altText) {
@@ -145,6 +144,9 @@ window.switchVariant = function (variantIndex) {
     document.querySelectorAll('.color-swatch').forEach((swatch, index) => {
         swatch.classList.toggle('active', index === variantIndex);
     });
+
+    selectedVariantIndex = variantIndex;
+    applyCurrentVariantToViewer();
 
     makeHeroTrackInfinite();
     setupGalleryProgress();
@@ -363,16 +365,7 @@ function makeHeroTrackInfinite() {
 }
 
 let productViewer = null;
-
-function getViewerFrameWindow() {
-    const iframe = document.getElementById('global-3d-iframe');
-    if (!iframe) return null;
-    try {
-        return iframe.contentWindow;
-    } catch {
-        return null;
-    }
-}
+let selectedVariantIndex = 0;
 
 function attachViewerBridge(iframe) {
     if (!iframe) return;
@@ -387,7 +380,7 @@ function attachViewerBridge(iframe) {
     const onReady = () => {
         if (!frameWindow.viewer) return;
         productViewer = frameWindow.viewer;
-        syncConfiguratorToViewer();
+        applyCurrentVariantToViewer();
     };
 
     if (frameWindow.viewerReady && frameWindow.viewer) {
@@ -398,236 +391,73 @@ function attachViewerBridge(iframe) {
     frameWindow.addEventListener('viewer-api-ready', onReady, { once: true });
 }
 
-function withProductViewer(run) {
-    if (productViewer) {
-        run(productViewer);
-        return true;
-    }
-    const product = window.__currentProduct;
-    if (product && product.modelUrl) {
-        open3D(product.modelUrl);
-    }
-    const iframe = document.getElementById('global-3d-iframe');
-    attachViewerBridge(iframe);
-    return false;
-}
-
-async function initProductConfigurator(product) {
-    const mount = document.getElementById('product-configurator');
-    if (!mount || !product.configApiUrl) return;
-
-    mount.innerHTML = '<p class="configurator-loading">Chargement de la configuration…</p>';
-
+function resolveConfigApiUrl(product) {
+    if (product.configApiUrl) return product.configApiUrl;
+    if (!product.modelUrl) return null;
     try {
-        const response = await fetch(product.configApiUrl);
-        if (!response.ok) throw new Error('Config unavailable');
-        const api = await response.json();
-        const project = api.project || {};
-        window.__viewerProject = project;
-        mount.innerHTML = renderConfiguratorMarkup(project);
-        wireConfiguratorEvents(project);
-        if (product.modelUrl) {
-            open3D(product.modelUrl);
-        }
+        const base = product.modelUrl.endsWith('/') ? product.modelUrl : `${product.modelUrl}/`;
+        return new URL('api.json', base).href;
     } catch {
-        mount.innerHTML = '<p class="configurator-error">Impossible de charger la configuration 3D.</p>';
+        return null;
     }
 }
 
-function renderConfiguratorMarkup(project) {
-    const rules = project.rules || [];
-    const engravings = project.engravings || [];
-    const viewpoints = project.viewpoints || [];
-    const defaults = project.defaults || {};
-    const defaultRules = defaults.rules || {};
-
-    const rulesHtml = rules.map(rule => {
-        const activeId = defaultRules[rule.id] || (rule.options && rule.options[0] && rule.options[0].id);
-        return `
-            <div class="config-group" data-rule-id="${rule.id}">
-                <span class="config-group-label">${rule.label || rule.id}</span>
-                <div class="config-options">
-                    ${(rule.options || []).map(opt => `
-                        <button type="button"
-                                class="config-option ${opt.id === activeId ? 'active' : ''}"
-                                data-rule-id="${rule.id}"
-                                data-option-id="${opt.id}">
-                            ${opt.label || opt.id}
-                        </button>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }).join('');
-
-    const engravingsHtml = engravings.map(zone => {
-        const text = defaults.engravingText || zone.text || '';
-        const font = defaults.engravingFont || zone.font || (zone.fonts && zone.fonts[0]) || '';
-        const fontOptions = (zone.fonts || []).map(name => `
-            <option value="${name}" ${name === font ? 'selected' : ''}>${name}</option>
-        `).join('');
-        return `
-            <div class="config-group" data-engraving-id="${zone.id}">
-                <label class="config-group-label" for="engraving-${zone.id}">${zone.label || 'Gravure'}</label>
-                <input type="text" class="config-text" id="engraving-${zone.id}"
-                       data-engraving-id="${zone.id}" value="${escapeHtmlAttr(text)}" maxlength="32">
-                ${fontOptions ? `
-                <select class="config-select" data-engraving-font="${zone.id}">${fontOptions}</select>
-                ` : ''}
-            </div>
-        `;
-    }).join('');
-
-    const viewpointsHtml = viewpoints.length ? `
-        <div class="config-group">
-            <span class="config-group-label">Vue</span>
-            <div class="config-options">
-                ${viewpoints.map(vp => `
-                    <button type="button" class="config-option viewpoint-option ${vp.id === project.defaultViewpoint ? 'active' : ''}"
-                            data-viewpoint-id="${vp.id}">
-                        ${vp.label || vp.id}
-                    </button>
-                `).join('')}
-            </div>
-        </div>
-    ` : '';
-
-    return `
-        <div class="configurator-panel">
-            <h2 class="configurator-title">Personnalisation</h2>
-            ${rulesHtml}
-            ${engravingsHtml}
-            ${viewpointsHtml}
-        </div>
-    `;
+async function loadViewerConfig(product) {
+    const configUrl = resolveConfigApiUrl(product);
+    if (!configUrl) return;
+    try {
+        const response = await fetch(configUrl);
+        if (!response.ok) return;
+        const api = await response.json();
+        window.__viewerProject = api.project || {};
+        applyCurrentVariantToViewer();
+    } catch {
+        // Viewer stays photo-only if the API is missing.
+    }
 }
 
-function escapeHtmlAttr(value) {
-    return String(value)
-        .replace(/&/g, '&amp;')
-        .replace(/"/g, '&quot;')
-        .replace(/</g, '&lt;');
-}
-
-function wireConfiguratorEvents(project) {
-    const mount = document.getElementById('product-configurator');
-    if (!mount) return;
-
-    mount.querySelectorAll('[data-rule-id][data-option-id]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const ruleId = btn.dataset.ruleId;
-            const optionId = btn.dataset.optionId;
-            mount.querySelectorAll(`[data-rule-id="${ruleId}"][data-option-id]`).forEach(el => {
-                el.classList.toggle('active', el === btn);
-            });
-            applyViewerRule(ruleId, optionId);
-        });
-    });
-
-    mount.querySelectorAll('.config-text[data-engraving-id]').forEach(input => {
-        const apply = () => applyViewerEngravingText(input.dataset.engravingId, input.value);
-        input.addEventListener('change', apply);
-        input.addEventListener('input', debounce(apply, 300));
-    });
-
-    mount.querySelectorAll('select[data-engraving-font]').forEach(select => {
-        select.addEventListener('change', () => {
-            applyViewerEngravingFont(select.dataset.engravingFont, select.value);
-        });
-    });
-
-    mount.querySelectorAll('.viewpoint-option').forEach(btn => {
-        btn.addEventListener('click', () => {
-            mount.querySelectorAll('.viewpoint-option').forEach(el => {
-                el.classList.toggle('active', el === btn);
-            });
-            applyViewerViewpoint(btn.dataset.viewpointId);
-        });
-    });
-}
-
-function debounce(fn, ms) {
-    let timer;
-    return (...args) => {
-        clearTimeout(timer);
-        timer = setTimeout(() => fn(...args), ms);
+function normalizeColorKey(value) {
+    const aliases = {
+        noir: 'black',
+        black: 'black',
+        blanc: 'white',
+        white: 'white',
+        gris: 'grey',
+        grey: 'grey',
+        gray: 'grey'
     };
+    return aliases[String(value || '').trim().toLowerCase()] || String(value || '').trim().toLowerCase();
 }
 
-function applyViewerRule(ruleId, optionId) {
-    if (!withProductViewer(viewer => viewer.applyRule(ruleId, optionId))) {
-        window.__pendingViewerActions = window.__pendingViewerActions || [];
-        window.__pendingViewerActions.push({ type: 'rule', ruleId, optionId });
-    }
+function getColorRule(project) {
+    const rules = (project && project.rules) || [];
+    return rules.find(rule => rule.id === 'color' || /couleur|color/i.test(rule.label || '')) || rules[0];
 }
 
-function applyViewerEngravingText(engravingId, text) {
-    if (!withProductViewer(viewer => viewer.setEngravingText(engravingId, text))) {
-        window.__pendingViewerActions = window.__pendingViewerActions || [];
-        window.__pendingViewerActions.push({ type: 'engravingText', engravingId, text });
+function getOptionForVariant(variant, index) {
+    const project = window.__viewerProject;
+    if (!variant || !project) return null;
+    if (variant.ruleId && variant.optionId) {
+        return { ruleId: variant.ruleId, optionId: variant.optionId };
     }
+    const rule = getColorRule(project);
+    if (!rule) return null;
+    const options = rule.options || [];
+    if (variant.optionId) return { ruleId: rule.id, optionId: variant.optionId };
+    const key = normalizeColorKey(variant.colorName);
+    const match = options.find(opt =>
+        normalizeColorKey(opt.label) === key || normalizeColorKey(opt.id) === key
+    );
+    if (match) return { ruleId: rule.id, optionId: match.id };
+    if (options[index]) return { ruleId: rule.id, optionId: options[index].id };
+    return null;
 }
 
-function applyViewerEngravingFont(engravingId, fontName) {
-    if (!withProductViewer(viewer => viewer.setEngravingFont(engravingId, fontName))) {
-        window.__pendingViewerActions = window.__pendingViewerActions || [];
-        window.__pendingViewerActions.push({ type: 'engravingFont', engravingId, fontName });
-    }
-}
-
-function applyViewerViewpoint(viewpointId) {
-    if (!withProductViewer(viewer => viewer.gotoViewpoint(viewpointId))) {
-        window.__pendingViewerActions = window.__pendingViewerActions || [];
-        window.__pendingViewerActions.push({ type: 'viewpoint', viewpointId });
-    }
-}
-
-function syncConfiguratorToViewer() {
-    if (!productViewer || !window.__viewerProject) return;
-
-    const pending = (window.__pendingViewerActions || []).slice();
-    window.__pendingViewerActions = [];
-
-    const mount = document.getElementById('product-configurator');
-    if (mount) {
-        mount.querySelectorAll('[data-rule-id][data-option-id].active').forEach(btn => {
-            productViewer.applyRule(btn.dataset.ruleId, btn.dataset.optionId);
-        });
-        mount.querySelectorAll('.config-text[data-engraving-id]').forEach(input => {
-            productViewer.setEngravingText(input.dataset.engravingId, input.value);
-        });
-        mount.querySelectorAll('select[data-engraving-font]').forEach(select => {
-            productViewer.setEngravingFont(select.dataset.engravingFont, select.value);
-        });
-        const activeVp = mount.querySelector('.viewpoint-option.active');
-        if (activeVp) productViewer.gotoViewpoint(activeVp.dataset.viewpointId);
-    } else {
-        const defaults = window.__viewerProject.defaults || {};
-        const rules = defaults.rules || {};
-        Object.entries(rules).forEach(([ruleId, optionId]) => {
-            productViewer.applyRule(ruleId, optionId);
-        });
-        if (defaults.engravingText) {
-            const zones = window.__viewerProject.engravings || [];
-            zones.forEach(zone => {
-                productViewer.setEngravingText(zone.id, defaults.engravingText);
-            });
-        }
-        if (defaults.engravingFont) {
-            const zones = window.__viewerProject.engravings || [];
-            zones.forEach(zone => {
-                productViewer.setEngravingFont(zone.id, defaults.engravingFont);
-            });
-        }
-        const vp = window.__viewerProject.defaultViewpoint;
-        if (vp) productViewer.gotoViewpoint(vp);
-    }
-
-    pending.forEach(action => {
-        if (action.type === 'rule') productViewer.applyRule(action.ruleId, action.optionId);
-        if (action.type === 'engravingText') productViewer.setEngravingText(action.engravingId, action.text);
-        if (action.type === 'engravingFont') productViewer.setEngravingFont(action.engravingId, action.fontName);
-        if (action.type === 'viewpoint') productViewer.gotoViewpoint(action.viewpointId);
-    });
+function applyCurrentVariantToViewer() {
+    if (!productViewer) return;
+    const product = window.__currentProduct;
+    const variant = product && product.variants && product.variants[selectedVariantIndex];
+    const mapping = getOptionForVariant(variant, selectedVariantIndex);
+    if (mapping) productViewer.applyRule(mapping.ruleId, mapping.optionId);
 }
 

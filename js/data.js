@@ -75,9 +75,8 @@ const products = [
         description: "Niveau à calles pour lunette de tir. Permet de vérifier l'horizontalité de votre optique pour un réglage précis.",
         images: ["assets/images/SL_wall_black.webp", "assets/images/SL_flat_black.webp", "assets/images/SL_rifle_black.webp"],
         variants: [
-            { color: "#000000", colorName: "Noir", images: ["assets/images/SL_wall_black.webp", "assets/images/SL_flat_black.webp", "assets/images/SL_rifle_black.webp"] },
-            { color: "#808080", colorName: "Gris", images: ["assets/images/SL_wall_grey.webp", "assets/images/SL_flat_grey.webp", "assets/images/SL_rifle_grey.webp"] },
-            { color: "#FFFFFF", colorName: "Blanc", images: ["assets/images/SL_wall_white.webp", "assets/images/SL_flat_white.webp", "assets/images/SL_rifle_white.webp"] }
+            { color: "#000000", colorName: "Noir", optionId: "red", images: ["assets/images/SL_wall_black.webp", "assets/images/SL_flat_black.webp", "assets/images/SL_rifle_black.webp"] },
+            { color: "#FFFFFF", colorName: "Blanc", optionId: "red22", images: ["assets/images/SL_wall_white.webp", "assets/images/SL_flat_white.webp", "assets/images/SL_rifle_white.webp"] }
         ],
         modelUrl: "https://maximeo3d.github.io/OT_ScopeLevelTool/",
         bestseller: false,
@@ -104,20 +103,6 @@ const products = [
         productType: "Type 5",
         description: "Porte clé en forme d'OVNI. Pour personnaliser votre trousseau, ou votre arme. Accroche Picatinny/m-lok vendus en option ou à part",
         images: ["assets/images/ph-1.jpg", "assets/images/ph-2.jpg", "assets/images/ph-3.jpg"],
-        bestseller: false,
-        stock: true,
-        promo: 0
-    },
-    {
-        id: 11,
-        name: "Produit de test",
-        price: 1.00,
-        category: "Goodies",
-        productType: "Type 3",
-        description: "Produit de démonstration pour tester la configuration 3D depuis la fiche produit (forme, couleur, drapeau, gravure).",
-        images: ["assets/images/ph-1.jpg", "assets/images/ph-2.jpg", "assets/images/ph-3.jpg"],
-        modelUrl: "https://maximeo3d.github.io/3d-config-test/",
-        configApiUrl: "https://raw.githubusercontent.com/maximeo3D/3d-config-test/refs/heads/master/api.json",
         bestseller: false,
         stock: true,
         promo: 0
